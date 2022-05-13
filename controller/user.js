@@ -3,6 +3,8 @@ const User = require('../model/signup-signin-model')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 
+// const {check} = require('express-validator')
+
 exports.signUp = async (req,res) =>{
     const emailExist = await User.findOne({email: req.body.email})
 
@@ -13,14 +15,14 @@ exports.signUp = async (req,res) =>{
 
     const salt = await bcrypt.genSalt(10)
     const hashedPassword = await bcrypt.hash(req.body.password,salt)
-    const hashedConfirmPassword = await bcrypt.hash(req.body.confirmPassword,salt)
+    // const hashedConfirmPassword = await bcrypt.hash(req.body.confirmPassword,salt)
 
     const user = new User({
         username:req.body.username,
         email:req.body.email,
         adress:req.body.adress,
         password: hashedPassword,
-        confirmPassword: hashedConfirmPassword
+        // confirmPassword: hashedConfirmPassword
     })
 
     try {
@@ -30,7 +32,7 @@ exports.signUp = async (req,res) =>{
             email: Joi.string().min(3).required().email(),
             adress: Joi.string().min(3).required(),
             password: Joi.string().min(8).required(),
-            confirmPassword: Joi.string().min(8).required()
+            // confirmPassword: Joi.string().min(8).required()
         })
 
         const {error} = await registrationSchema.validateAsync(req.body)
@@ -39,7 +41,7 @@ exports.signUp = async (req,res) =>{
             res.status(400).send(error.details[0].message)
             return;
         }else{
-            
+
             const saveUser = await user.save()
             res.status(200).send("user created successfully")
         }
@@ -61,10 +63,18 @@ exports.logIn = async (req,res) => {
     const validatePassword = await bcrypt.compare(req.body.password, user.password)
     if(!validatePassword) return res.status(400).send("Incorrect Password")
 
+    // checking for confrim password
+     
+    const confirmPassword = await (req.body.confirmPassword, user.confirmPassword)
+    if(password !== confirmPassword){
+        throw new Error('Passwords must be same')
+      }
+
     try{
         const loginSchema = Joi.object({
             email: Joi.string().min(3).required().email(),
             password: Joi.string().min(8).required()
+           
         })
 
         const {error} = await loginSchema.validateAsync(req.body)
