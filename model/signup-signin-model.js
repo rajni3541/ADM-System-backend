@@ -24,6 +24,12 @@ const signupSigninSchema = new mongoose.Schema({
         required:true,
         min:8,
         max: 50
+    },
+    confirmPassword:{
+        type:String,
+        required:true,
+        min:8,
+        max: 50
     }
 })
 

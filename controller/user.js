@@ -5,6 +5,10 @@ const jwt = require('jsonwebtoken')
 
 // const {check} = require('express-validator')
 
+exports.setIndex = (req,res) =>{
+    res.send('backend is running')
+}
+
 exports.signUp = async (req,res) =>{
     const emailExist = await User.findOne({email: req.body.email})
 
@@ -15,14 +19,14 @@ exports.signUp = async (req,res) =>{
 
     const salt = await bcrypt.genSalt(10)
     const hashedPassword = await bcrypt.hash(req.body.password,salt)
-    // const hashedConfirmPassword = await bcrypt.hash(req.body.confirmPassword,salt)
+    const hashedConfirmPassword = await bcrypt.hash(req.body.confirmPassword,salt)
 
     const user = new User({
         username:req.body.username,
         email:req.body.email,
         adress:req.body.adress,
         password: hashedPassword,
-        // confirmPassword: hashedConfirmPassword
+        confirmPassword: hashedConfirmPassword
     })
 
     try {
@@ -32,7 +36,7 @@ exports.signUp = async (req,res) =>{
             email: Joi.string().min(3).required().email(),
             adress: Joi.string().min(3).required(),
             password: Joi.string().min(8).required(),
-            // confirmPassword: Joi.string().min(8).required()
+            confirmPassword: Joi.string().min(8).required()
         })
 
         const {error} = await registrationSchema.validateAsync(req.body)
@@ -41,10 +45,21 @@ exports.signUp = async (req,res) =>{
             res.status(400).send(error.details[0].message)
             return;
         }else{
+            if(hashedPassword === hashedConfirmPassword){
+                const user = new userData({
+                    username: req.body.name,
+                    email: req.body.email,
+                    adress: req.body.adress,
+                    password: hashedPassword,
+                    confirmPassword: hashedConfirmPassword
+                })
 
             const saveUser = await user.save()
             res.status(200).send("user created successfully")
+        }else{ 
+            res.send('Password doesnot match ')
         }
+    }
 
 
     } catch (error) {      // server error
@@ -65,10 +80,10 @@ exports.logIn = async (req,res) => {
 
     // checking for confrim password
      
-    const confirmPassword = await (req.body.confirmPassword, user.confirmPassword)
-    if(password !== confirmPassword){
-        throw new Error('Passwords must be same')
-      }
+    // const confirmPassword = await (req.body.confirmPassword, user.confirmPassword)
+    // if(password !== confirmPassword){
+    //     throw new Error('Passwords must be same')
+    //   }
 
     try{
         const loginSchema = Joi.object({

@@ -3,6 +3,7 @@ const { request } = require('express')
 const Controller = require('../controller/User')
 const verify = require('./authVerify')
 const cors = require('cors');
+const express = require('express')
 
 router.post('/register', cors(),Controller.signUp)
 
